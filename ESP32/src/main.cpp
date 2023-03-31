@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 const char* DEVICE_ID = "<DEVICE_ID>";
 
@@ -12,12 +14,17 @@ String SERVER_URL = "<SERVER_URL>";
 unsigned long currentTime = 0;
 unsigned long requestDelay = 30000;
 
+const int oneWireBus = 4;     
+OneWire oneWire(oneWireBus);
+DallasTemperature sensors(&oneWire);
+
 void getRequest();
 void postRequest();
 void checkHttpConnection(int httpResponseCode, String payload);
 
 void setup() {
   Serial.begin(115200); 
+  sensors.begin();
 
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   Serial.println("Connecting");
@@ -89,4 +96,16 @@ void checkHttpConnection (int httpResponseCode, String payload) {
         Serial.print("Error code: ");
         Serial.println(httpResponseCode);
       }
+}
+
+
+void temperatureSensor() {
+  sensors.requestTemperatures(); 
+  float temperatureC = sensors.getTempCByIndex(0);
+  float temperatureF = sensors.getTempFByIndex(0);
+  Serial.print(temperatureC);
+  Serial.println("ºC");
+  Serial.print(temperatureF);
+  Serial.println("ºF");
+  delay(5000);
 }
