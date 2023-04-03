@@ -12,11 +12,11 @@
 #define FIREBASE_HOST 
 #define FAPI_KEY 
 
-String POND_ID = "6425db4ba1202bb6288f31d9";
-String POND_ID2 = "6427e5c3a1202bb62800237b";
-String DEVICE_ID = "6425d846a1202bb62882fe7d";
-String DEVICE_ID2 = "6427e750a1202bb628058124";
-String SERVER_URL = "https://shrimpro.seirei.site/iot/devices";
+String POND_ID = "ID";
+String POND_ID2 = "ID";
+String DEVICE_ID = "ID";
+String DEVICE_ID2 = "ID";
+String SERVER_URL = "SERVER_URL";
 
 FirebaseData fbdo;
 FirebaseAuth fauth;
