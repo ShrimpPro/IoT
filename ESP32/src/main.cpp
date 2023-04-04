@@ -12,29 +12,29 @@
 #define FIREBASE_HOST 
 #define FAPI_KEY 
 
-String POND_ID = "ID";
-String POND_ID2 = "ID";
-String DEVICE_ID = "ID";
-String DEVICE_ID2 = "ID";
-String SERVER_URL = "SERVER_URL";
+String POND_ID = 
+String POND_ID2 = 
+String DEVICE_ID = 
+String DEVICE_ID2 = 
+String SERVER_URL = 
 
 FirebaseData fbdo;
 FirebaseAuth fauth;
 FirebaseConfig fconfig;
 
 unsigned long currentTime = 0;
-unsigned long requestDelay = 30000;
+unsigned long requestDelay = 3600000;
 unsigned long sendDataPrevMillis = 0;
 unsigned long count = 0;
 bool signupOK = false;
 
-const int oneWireBus = 4;     
+const int oneWireBus = 4;
 OneWire oneWire(oneWireBus);
 DallasTemperature sensors(&oneWire);
 
 float phPin = 36;
-float PH4 = 2.1;
-float PH7 = 1.64;
+float PH4 = 2.135;
+float PH7 = 1.91;
 
 void firebaseConnect(float ph, float temp);
 void getRequest();
@@ -43,13 +43,15 @@ void checkHttpConnection(int httpResponseCode, String payload);
 float senseTemp();
 float sensePH();
 
-void setup() {
-  Serial.begin(115200); 
+void setup()
+{
+  Serial.begin(115200);
   sensors.begin();
 
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   Serial.println("Connecting");
-  while(WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
     Serial.print(".");
   }
@@ -63,86 +65,97 @@ void setup() {
   fauth.user.email = USER_EMAIL;
   fauth.user.password = USER_PASSWORD;
 
-   if (Firebase.signUp(&fconfig, &fauth, "", "")){
+  if (Firebase.signUp(&fconfig, &fauth, "", ""))
+  {
     Serial.println("ok");
     signupOK = true;
   }
-  else{
+  else
+  {
     Serial.printf("%s\n", fconfig.signer.signupError.message.c_str());
   }
-
-  /* Assign the callback function for the long running token generation task */
 
   Firebase.begin(&fconfig, &fauth);
   Firebase.reconnectWiFi(false);
 }
 
-void loop() {
-    float ph = sensePH();
-    float temp = senseTemp();
-  if ((millis() - currentTime) > requestDelay) {
-    if(WiFi.status()== WL_CONNECTED){
-      // getRequest();
+void loop()
+{
+  float ph = sensePH();
+  float temp = senseTemp();
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    if ((millis() - currentTime) > requestDelay)
+    {
       postRequest(ph, temp);
-      firebaseConnect(ph, temp); 
+      // getRequest();
     }
-    else {
-      Serial.println("WiFi Disconnected");
-    }
-    currentTime = millis();
+    firebaseConnect(ph, temp);
+  }
+  else
+  {
+    Serial.println("WiFi Disconnected");
+  }
+  currentTime = millis();
+  // delay(3000);
+}
+
+void getRequest()
+{
+  String getPath = SERVER_URL + "/get";
+  HTTPClient http;
+
+  Serial.println("Begin connection \n");
+  http.begin(getPath.c_str());
+
+  int httpResponseCode = http.GET();
+  String payload = http.getString();
+
+  checkHttpConnection(httpResponseCode, payload);
+
+  Serial.println("End connection \n");
+  // http.end();
+}
+
+void postRequest(float ph, float temp)
+{
+  String getPath = SERVER_URL + "/" + POND_ID;
+  HTTPClient http;
+
+  Serial.println("Begin connection \n");
+  http.begin(getPath.c_str());
+
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  String httpRequestPostData = (String) "DeviceId=" + DEVICE_ID + "&temp=" + temp + "&pH=" + ph;
+  int httpResponseCode = http.POST(httpRequestPostData);
+  String payload = http.getString();
+
+  checkHttpConnection(httpResponseCode, payload);
+
+  Serial.println("End connection \n");
+  // http.end();
+}
+
+
+
+void checkHttpConnection(int httpResponseCode, String payload)
+{
+  if (httpResponseCode > 0)
+  {
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+    Serial.println(payload);
+  }
+  else
+  {
+    Serial.print("Error code: ");
+    Serial.println(httpResponseCode);
   }
 }
 
-void getRequest() {
-      String getPath = SERVER_URL + "/get";
-      HTTPClient http;
-
-      Serial.println("Begin connection \n");
-      http.begin(getPath.c_str());
-
-      int httpResponseCode = http.GET();
-      String payload = http.getString();
-
-      checkHttpConnection(httpResponseCode, payload);
-
-      Serial.println("End connection \n");
-      // http.end();
-}
-
-void postRequest(float ph, float temp) {
-      String getPath = SERVER_URL + "/" + POND_ID;
-      HTTPClient http;
-
-      Serial.println("Begin connection \n");
-      http.begin(getPath.c_str());
-
-      http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-      String httpRequestPostData = (String) "DeviceId=" + DEVICE_ID
-        + "&temp=" + temp
-        + "&pH=" + ph;
-      int httpResponseCode = http.POST(httpRequestPostData);
-      String payload = http.getString();
-
-      checkHttpConnection(httpResponseCode, payload);
-
-      Serial.println("End connection \n");
-      // http.end();
-}
-
-void checkHttpConnection (int httpResponseCode, String payload) {
-      if (httpResponseCode>0) {
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
-        Serial.println(payload);
-      }
-      else {
-        Serial.print("Error code: ");
-        Serial.println(httpResponseCode);
-      }
-}
-
-float senseTemp() {
-  sensors.requestTemperatures(); 
+float senseTemp()
+{
+  sensors.requestTemperatures();
   float temperatureC = sensors.getTempCByIndex(0);
   Serial.print("Temperature: ");
   Serial.print(temperatureC);
@@ -151,80 +164,94 @@ float senseTemp() {
   // delay(5000);
 }
 
-float sensePH() {
+float sensePH()
+{
   int analogValue = analogRead(phPin);
-  double phVoltage = 3.3 / 4095.0 * analogValue;
+  float phVoltage = 3.3 / 4095.0 * analogValue;
   float phCallib = (PH4 - PH7) / 3;
   float pH = 7.00 + ((PH7 - phVoltage) / phCallib);
   Serial.print("PH: ");
   Serial.print(pH);
   Serial.print(" | Tegangan: ");
-  Serial.print(phVoltage);
+  Serial.print(phVoltage, 4);
   Serial.print(" | ADC: ");
   Serial.println(analogValue);
   return pH;
   // delay(2000)
 }
 
-void firebaseConnect(float ph, float temp) {
-    if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0)){
+void firebaseConnect(float ph, float temp)
+{
+  if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0))
+  {
     sendDataPrevMillis = millis();
-    if (Firebase.RTDB.setFloat(&fbdo, POND_ID + "/pH", ph)){
+    if (Firebase.RTDB.setFloat(&fbdo, POND_ID + "/pH", ph))
+    {
       Serial.println("PASSED");
       Serial.println("PATH: " + fbdo.dataPath());
       Serial.println("TYPE: " + fbdo.dataType());
     }
-    else {
+    else
+    {
       Serial.println("FAILED");
       Serial.println("REASON: " + fbdo.errorReason());
     }
-    if (Firebase.RTDB.setFloat(&fbdo, POND_ID + "/temp", temp)){
+    if (Firebase.RTDB.setFloat(&fbdo, POND_ID + "/temp", temp))
+    {
       Serial.println("PASSED");
       Serial.println("PATH: " + fbdo.dataPath());
       Serial.println("TYPE: " + fbdo.dataType());
     }
-    else {
+    else
+    {
       Serial.println("FAILED");
       Serial.println("REASON: " + fbdo.errorReason());
     }
-    if (Firebase.RTDB.setString(&fbdo, POND_ID + "/DeviceId", DEVICE_ID)){
+    if (Firebase.RTDB.setString(&fbdo, POND_ID + "/DeviceId", DEVICE_ID))
+    {
       Serial.println("PASSED");
       Serial.println("PATH: " + fbdo.dataPath());
       Serial.println("TYPE: " + fbdo.dataType());
     }
-    else {
+    else
+    {
       Serial.println("FAILED");
       Serial.println("REASON: " + fbdo.errorReason());
     }
 
-    //This one is dummy
-    if (Firebase.RTDB.setFloat(&fbdo, POND_ID2 + "/pH", ph + 2)){
+    // This one is dummy
+    if (Firebase.RTDB.setFloat(&fbdo, POND_ID2 + "/pH", ph + 2))
+    {
       Serial.println("PASSED");
       Serial.println("PATH: " + fbdo.dataPath());
       Serial.println("TYPE: " + fbdo.dataType());
     }
-    else {
+    else
+    {
       Serial.println("FAILED");
       Serial.println("REASON: " + fbdo.errorReason());
     }
-    if (Firebase.RTDB.setFloat(&fbdo, POND_ID2 + "/temp", temp + 2)){
+    if (Firebase.RTDB.setFloat(&fbdo, POND_ID2 + "/temp", temp + 2))
+    {
       Serial.println("PASSED");
       Serial.println("PATH: " + fbdo.dataPath());
       Serial.println("TYPE: " + fbdo.dataType());
     }
-    else {
+    else
+    {
       Serial.println("FAILED");
       Serial.println("REASON: " + fbdo.errorReason());
     }
-    if (Firebase.RTDB.setString(&fbdo, POND_ID2 + "/DeviceId", DEVICE_ID2)){
+    if (Firebase.RTDB.setString(&fbdo, POND_ID2 + "/DeviceId", DEVICE_ID2))
+    {
       Serial.println("PASSED");
       Serial.println("PATH: " + fbdo.dataPath());
       Serial.println("TYPE: " + fbdo.dataType());
     }
-    else {
+    else
+    {
       Serial.println("FAILED");
       Serial.println("REASON: " + fbdo.errorReason());
     }
   }
 }
-
