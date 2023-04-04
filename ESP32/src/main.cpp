@@ -5,18 +5,18 @@
 #include <DallasTemperature.h>
 #include <FirebaseESP32.h>
 
-#define USER_EMAIL "email@mitra.com"
-#define USER_PASSWORD "password_mitra"
-#define WIFI_SSID "iiFi-NFT"
-#define WIFI_PASS "PW12398799"
-#define FIREBASE_HOST "https://shrimpro-504f8-default-rtdb.asia-southeast1.firebasedatabase.app/"
-#define FAPI_KEY "AIzaSyCi-7jS2WTdqPuA1wn-JGOxXDvJR4SdlhQ"
+#define USER_EMAIL 
+#define USER_PASSWORD 
+#define WIFI_SSID 
+#define WIFI_PASS 
+#define FIREBASE_HOST 
+#define FAPI_KEY 
 
-String POND_ID = "6425db4ba1202bb6288f31d9";
-String POND_ID2 = "6427e5c3a1202bb62800237b";
-String DEVICE_ID = "6425d846a1202bb62882fe7d";
-String DEVICE_ID2 = "6427e750a1202bb628058124";
-String SERVER_URL = "https://shrimpro.seirei.site/iot/devices";
+String POND_ID = 
+String POND_ID2 = 
+String DEVICE_ID = 
+String DEVICE_ID2 = 
+String SERVER_URL = 
 
 FirebaseData fbdo;
 FirebaseAuth fauth;
